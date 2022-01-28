@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"test/component"
+	"test/modules/food/foodtransport/ginfood"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -43,52 +45,15 @@ func main() {
 }
 func runService(db *gorm.DB) error {
 	r := gin.Default()
+
+	appCtx := component.NewAppCtx(db)
 	food := r.Group("/foods")
 	{
 		// create new food
-		food.POST("", func(c *gin.Context) {
-			var newFood Food
-
-			if err := c.ShouldBind(&newFood); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			if err := db.Create(&newFood).Error; err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			c.JSON(http.StatusOK, newFood)
-		})
+		food.POST("", ginfood.CreateFood(appCtx))
 
 		// Get all food
-		food.GET("", func(c *gin.Context) {
-			var listFood []Food
-			type Filter struct {
-				Status int `json:"status" form:"status"`
-			}
-			var filter Filter
-			if err := c.ShouldBind(&filter); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			newDB := db
-			if filter.Status > 0 {
-				newDB = db.Where("status = ?", filter.Status)
-			}
-			if err := newDB.Find(&listFood).Error; err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-					"error": err.Error(),
-				})
-				return
-			}
-			c.JSON(http.StatusOK, listFood)
-		})
+		food.GET("", ginfood.ListFood(appCtx))
 
 		//Get food by id
 		food.GET("/:id", func(c *gin.Context) {
