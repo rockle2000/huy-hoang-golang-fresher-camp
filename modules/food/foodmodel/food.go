@@ -3,12 +3,15 @@ package foodmodel
 import (
 	"errors"
 	"strings"
+	"test/common"
 )
 
+const EntityName = "Food"
+
 type Food struct {
-	Id          int    `json:"id,omitempty" gorm:"column:id"`
-	Name        string `json:"name" gorm:"column:name"`
-	Description string `json:"description" gorm:"column:description"`
+	common.SQLModel `json:",inline"`
+	Name            string `json:"name" gorm:"column:name"`
+	Description     string `json:"description" gorm:"column:description"`
 }
 
 func (Food) TableName() string {

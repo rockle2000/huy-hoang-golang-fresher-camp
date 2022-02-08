@@ -28,5 +28,5 @@ func (biz *listFoodBiz) ListFood(ctx context.Context,
 	paging *common.Paging,
 ) ([]foodmodel.Food, error) {
 	result, err := biz.store.ListDataByCondition(ctx, nil, filter, paging)
-	return result, err
+	return result, common.ErrCannotListEntity(foodmodel.EntityName, err)
 }

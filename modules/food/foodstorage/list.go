@@ -19,7 +19,7 @@ func (s *sqlStore) ListDataByCondition(ctx context.Context,
 		db = db.Preload(moreKey[i])
 	}
 
-	db = db.Table(foodmodel.Food{}.TableName()).Where(condition)
+	db = db.Table(foodmodel.Food{}.TableName()).Where(condition).Where("status in (1)")
 
 	if v := filter; v != nil {
 		if v.Status > 0 {
@@ -28,13 +28,13 @@ func (s *sqlStore) ListDataByCondition(ctx context.Context,
 	}
 
 	if err := db.Table(foodmodel.Food{}.TableName()).Count(&paging.Total).Error; err != nil {
-		return nil, err
+		return nil, common.ErrDB(err)
 	}
 	if err := db.
 		Offset((paging.Page - 1) * paging.Limit).
 		Limit(paging.Limit).
 		Find(&result).Error; err != nil {
-		return nil, err
+		return nil, common.ErrDB(err)
 	}
 	return result, nil
 }
