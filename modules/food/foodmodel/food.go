@@ -10,26 +10,32 @@ const EntityName = "Food"
 
 type Food struct {
 	common.SQLModel `json:",inline"`
-	Name            string `json:"name" gorm:"column:name"`
-	Description     string `json:"description" gorm:"column:description"`
+	Name            string         `json:"name" gorm:"column:name"`
+	Description     string         `json:"description" gorm:"column:description"`
+	Logo            *common.Image  `json:"logo" gorm:"column:logo"`
+	Cover           *common.Images `json:"cover" gorm:"column:cover"`
 }
 
 func (Food) TableName() string {
-	return "products"
+	return "sanpham"
 }
 
 type FoodUpdate struct {
-	Name        *string `json:"name" gorm:"column:name"`
-	Description *string `json:"description" gorm:"column:description"`
+	Name        *string        `json:"name" gorm:"column:name"`
+	Description *string        `json:"description" gorm:"column:description"`
+	Logo        *common.Image  `json:"logo" gorm:"column:logo"`
+	Cover       *common.Images `json:"cover" gorm:"column:cover"`
 }
 
 func (FoodUpdate) TableName() string {
-	return "products"
+	return "sanpham"
 }
 
 type FoodCreate struct {
-	Name        string `json:"name" gorm:"column:name"`
-	Description string `json:"description" gorm:"column:description"`
+	Name        string         `json:"name" gorm:"column:name"`
+	Description string         `json:"description" gorm:"column:description"`
+	Logo        *common.Image  `json:"logo" gorm:"column:logo"`
+	Cover       *common.Images `json:"cover" gorm:"column:cover"`
 }
 
 func (res *FoodCreate) Validate() error {
@@ -41,5 +47,5 @@ func (res *FoodCreate) Validate() error {
 }
 
 func (FoodCreate) TableName() string {
-	return "products"
+	return "sanpham"
 }
