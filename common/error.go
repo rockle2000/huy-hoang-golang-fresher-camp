@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	RecordNotFound = errors.New("record not found!")
+	RecordNotFound = errors.New("record not found")
 )
 
 func AppRecover() {

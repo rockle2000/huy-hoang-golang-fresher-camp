@@ -7,7 +7,8 @@ import (
 	"test/component"
 	"test/component/uploadprovider"
 	"test/middleware"
-	"test/modules/food/foodtransport/ginfood"
+	"test/modules/restaurant/restauranttransport/ginrestaurant"
+	"test/modules/sanpham/sanphamtransport/ginsanpham"
 	"test/modules/upload/uploadtransport/ginupload"
 
 	"gorm.io/driver/mysql"
@@ -42,16 +43,25 @@ func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider) error {
 	r.POST("/upload", ginupload.Upload(appCtx))
 	food := r.Group("/foods")
 	{
-		// create new food
-		food.POST("", ginfood.CreateFood(appCtx))
-		// Get all food
-		food.GET("", ginfood.ListFood(appCtx))
-		//Get food by id
-		food.GET("/:id", ginfood.GetFood(appCtx))
-		//Update food by id
-		food.PATCH("/:id", ginfood.UpdateFood(appCtx))
-		//Delete food by id
-		food.DELETE("/:id", ginfood.DeleteFood(appCtx))
+		// create new sanpham
+		food.POST("", ginsanpham.CreateFood(appCtx))
+		// Get all sanpham
+		food.GET("", ginsanpham.ListFood(appCtx))
+		//Get sanpham by id
+		food.GET("/:id", ginsanpham.GetFood(appCtx))
+		//Update sanpham by id
+		food.PATCH("/:id", ginsanpham.UpdateFood(appCtx))
+		//Delete sanpham by id
+		food.DELETE("/:id", ginsanpham.DeleteFood(appCtx))
+	}
+
+	restaurant := r.Group("/restaurants")
+	{
+		restaurant.GET("", ginrestaurant.ListRestaurant(appCtx))
+		restaurant.GET("/:id", ginrestaurant.GetRestaurant(appCtx))
+		restaurant.POST("", ginrestaurant.CreateRestaurant(appCtx))
+		restaurant.PATCH("/:id", ginrestaurant.UpdateRestaurant(appCtx))
+		restaurant.DELETE("/:id", ginrestaurant.DeleteRestaurant(appCtx))
 	}
 	return r.Run()
 }
