@@ -102,10 +102,26 @@ func ErrCannotDeleteEntity(entity string, err error) *AppError {
 	)
 }
 
+func ErrCannotCreateEntity(entity string, err error) *AppError {
+	return NewCustomError(
+		err,
+		fmt.Sprintf("Cannot create %s", strings.ToLower(entity)),
+		fmt.Sprintf("ErrCannotCreate%s", entity),
+	)
+}
+
 func ErrEntityDeleted(entity string, err error) *AppError {
 	return NewCustomError(
 		err,
 		fmt.Sprintf("%s deleted", strings.ToLower(entity)),
 		fmt.Sprintf("Err%sDeleted", entity),
+	)
+}
+
+func ErrNoPermission(err error) *AppError {
+	return NewCustomError(
+		err,
+		fmt.Sprintf("You don't have permission"),
+		fmt.Sprint("ErrNoPermission"),
 	)
 }
