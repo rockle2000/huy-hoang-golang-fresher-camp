@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"test/common"
+	"test/component/asyncjob"
 	restaurantlikemodel "test/modules/restaurantlike/model"
 )
 
@@ -40,7 +41,11 @@ func (biz *userLikeRestaurantBiz) UserLikeRestaurant(
 
 	go func() {
 		defer common.AppRecover()
-		_ = biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId)
+		job := asyncjob.NewJob(func(ctx context.Context) error {
+			return biz.incStore.IncreaseLikeCount(ctx, data.RestaurantId)
+		})
+
+		_ = asyncjob.NewGroup(true, job).Run(ctx)
 	}()
 
 	return nil
