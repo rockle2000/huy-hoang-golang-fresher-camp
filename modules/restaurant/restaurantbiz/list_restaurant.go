@@ -2,7 +2,6 @@ package restaurantbiz
 
 import (
 	"context"
-	"log"
 	"test/common"
 	"test/modules/restaurant/restaurantmodel"
 )
@@ -38,22 +37,22 @@ func (biz *listRestaurantBiz) ListRestaurant(ctx context.Context,
 		return nil, common.ErrCannotListEntity(restaurantmodel.EntityName, err)
 	}
 
-	ids := make([]int, len(result))
-
-	for i := range result {
-		ids[i] = result[i].Id
-	}
-
-	mapResLike, err := biz.likStore.GetRestaurantLike(ctx, ids)
-	if err != nil {
-		log.Println("Cannot get restaurant likes: ", err)
-	}
-
-	if v := mapResLike; v != nil {
-		for i, item := range result {
-			result[i].LikeCount = mapResLike[item.Id]
-		}
-	}
+	//ids := make([]int, len(result))
+	//
+	//for i := range result {
+	//	ids[i] = result[i].Id
+	//}
+	//
+	//mapResLike, err := biz.likStore.GetRestaurantLike(ctx, ids)
+	//if err != nil {
+	//	log.Println("Cannot get restaurant likes: ", err)
+	//}
+	//
+	//if v := mapResLike; v != nil {
+	//	for i, item := range result {
+	//		result[i].LikeCount = mapResLike[item.Id]
+	//	}
+	//}
 
 	return result, nil
 }

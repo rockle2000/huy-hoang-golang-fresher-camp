@@ -73,6 +73,8 @@ func DecomposeUID(s string) (UID, error) {
 	return u, nil
 }
 
+// FromBase58
+//Get UID struct from encoded string
 func FromBase58(s string) (UID, error) {
 	return DecomposeUID(string(base58.Decode(s)))
 }

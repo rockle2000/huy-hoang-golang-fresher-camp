@@ -14,6 +14,7 @@ import (
 	"test/modules/sanpham/sanphamtransport/ginsanpham"
 	"test/modules/upload/uploadtransport/ginupload"
 	"test/modules/user/usertransport/ginuser"
+	"test/modules/userlike/transport/ginuserlike"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -79,8 +80,16 @@ func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider, secretKey
 		restaurant.DELETE("/:id", ginrestaurant.DeleteRestaurant(appCtx))
 
 		restaurant.GET("/:id/liked-users", ginrestaurantlike.ListUser(appCtx))
+		restaurant.POST("/:id/like", ginrestaurantlike.UserLikeRestaurant(appCtx))
+		restaurant.DELETE("/:id/unlike", ginrestaurantlike.UserUnlikeRestaurant(appCtx))
 	}
 
+	user := v1.Group("/users")
+	{
+		user.GET("/:id/like-restaurants", ginuserlike.ListRestaurant(appCtx))
+	}
+
+	//Get uid from real id - Dev
 	v1.GET("/encode-uid", gin.HandlerFunc(func(c *gin.Context) {
 		type reqData struct {
 			DbType int `form:"type"`
