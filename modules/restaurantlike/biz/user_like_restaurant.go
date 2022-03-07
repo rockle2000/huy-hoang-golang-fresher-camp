@@ -3,6 +3,7 @@ package restaurantlikebiz
 import (
 	"context"
 	"errors"
+	"go.opencensus.io/trace"
 	"test/common"
 	"test/component/asyncjob"
 	restaurantlikemodel "test/modules/restaurantlike/model"
@@ -30,7 +31,13 @@ func (biz *userLikeRestaurantBiz) UserLikeRestaurant(
 	ctx context.Context,
 	data *restaurantlikemodel.Like,
 ) error {
+	_, span := trace.StartSpan(ctx, "restaurant.biz.like")
+	span.AddAttributes(
+		trace.Int64Attribute("restaurant_id", int64(data.RestaurantId)),
+		trace.Int64Attribute("user_id", int64(data.UserId)),
+	)
 
+	defer span.End()
 	if data, _ := biz.store.Find(ctx, map[string]interface{}{"restaurant_id": data.RestaurantId, "user_id": data.UserId}); data != nil {
 		return restaurantlikemodel.ErrCannotLikeRestaurant(errors.New("you had liked this restaurant"))
 	}

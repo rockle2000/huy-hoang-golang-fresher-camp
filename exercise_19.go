@@ -2,17 +2,22 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	jg "go.opencensus.io/exporter/jaeger"
+	"go.opencensus.io/plugin/ochttp"
+	"go.opencensus.io/trace"
 	"log"
 	"net/http"
 	"os"
 	"test/common"
 	"test/component"
 	"test/component/uploadprovider"
+	"test/memcache"
 	"test/middleware"
 	"test/modules/restaurant/restauranttransport/ginrestaurant"
 	"test/modules/restaurantlike/transport/ginrestaurantlike"
 	"test/modules/sanpham/sanphamtransport/ginsanpham"
 	"test/modules/upload/uploadtransport/ginupload"
+	"test/modules/user/userstorage"
 	"test/modules/user/usertransport/ginuser"
 	"test/modules/userlike/transport/ginuserlike"
 
@@ -48,6 +53,8 @@ func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider, secretKey
 	appCtx := component.NewAppCtx(db, upProvider, secretKey)
 
 	r := gin.Default()
+	userStore := userstorage.NewSQLStore(appCtx.GetMainDBConnection())
+	userCachingStore := memcache.NewUserCaching(memcache.NewCaching(), userStore)
 	//r.Use(middleware.Recover(appCtx))
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -62,7 +69,7 @@ func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider, secretKey
 
 	v1.POST("/login", ginuser.Login(appCtx))
 	v1.POST("/register", ginuser.Register(appCtx))
-	v1.GET("/profile", middleware.RequiredAuth(appCtx), ginuser.GetProfile(appCtx))
+	v1.GET("/profile", middleware.RequiredAuth(appCtx, userCachingStore), ginuser.GetProfile(appCtx))
 
 	food := v1.Group("/foods")
 	{
@@ -78,7 +85,7 @@ func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider, secretKey
 		food.DELETE("/:id", ginsanpham.DeleteFood(appCtx))
 	}
 
-	restaurant := v1.Group("/restaurants", middleware.RequiredAuth(appCtx))
+	restaurant := v1.Group("/restaurants", middleware.RequiredAuth(appCtx, userCachingStore))
 	{
 		restaurant.GET("", ginrestaurant.ListRestaurant(appCtx))
 		restaurant.GET("/:id", ginrestaurant.GetRestaurant(appCtx))
@@ -109,5 +116,24 @@ func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider, secretKey
 		})
 
 	}))
-	return r.Run()
+
+	je, err := jg.NewExporter(jg.Options{
+		AgentEndpoint: "localhost:6831",
+		Process:       jg.Process{ServiceName: "Food-Delivery"},
+	})
+	if err != nil {
+		log.Println(err)
+	}
+
+	trace.RegisterExporter(je)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.ProbabilitySampler(1)})
+
+	return http.ListenAndServe(
+		":8080",
+		&ochttp.Handler{
+			Handler: r,
+		},
+	)
+
+	//return r.Run()
 }

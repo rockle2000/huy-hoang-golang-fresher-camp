@@ -2,6 +2,7 @@ package userbiz
 
 import (
 	"context"
+	"go.opencensus.io/trace"
 	"test/common"
 	"test/component"
 	"test/component/tokenprovider"
@@ -41,15 +42,20 @@ func NewLoginBusiness(storeUser LoginStorage, tokenProvider tokenprovider.Provid
 // S4: Return token(s)
 
 func (biz *loginBusiness) Login(ctx context.Context, data *usermodel.UserLogin) (*tokenprovider.Token, error) {
-	user, err := biz.storeUser.FindUser(ctx, map[string]interface{}{"email": data.Email})
+
+	ctx1, span1 := trace.StartSpan(ctx, "user.biz.login")
+	user, err := biz.storeUser.FindUser(ctx1, map[string]interface{}{"email": data.Email})
+	span1.End()
 	if err != nil {
 		return nil, usermodel.ErrUserNameOrPasswordInvalid
 	}
 
+	_, span2 := trace.StartSpan(ctx, "user.biz.login.gen-jwt")
 	// Ma hoa voi password tu input va salt trong db
 	passwordHashed := biz.hasher.Hash(data.Password + user.Salt)
 
 	if user.Password != passwordHashed {
+		span2.End()
 		return nil, usermodel.ErrUserNameOrPasswordInvalid
 	}
 
@@ -59,6 +65,7 @@ func (biz *loginBusiness) Login(ctx context.Context, data *usermodel.UserLogin) 
 	}
 
 	accessToken, err := biz.tokenProvider.Generate(payload, biz.expiry)
+	span2.End()
 	if err != nil {
 		return nil, common.ErrInternal(err)
 	}
