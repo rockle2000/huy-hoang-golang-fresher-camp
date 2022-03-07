@@ -46,8 +46,15 @@ func main() {
 func runService(db *gorm.DB, upProvider uploadprovider.UploadProvider, secretKey string) error {
 
 	appCtx := component.NewAppCtx(db, upProvider, secretKey)
+
 	r := gin.Default()
-	r.Use(middleware.Recover(appCtx))
+	//r.Use(middleware.Recover(appCtx))
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "true",
+		})
+	})
+	//r.Use(middleware.Recover(appCtx))
 
 	v1 := r.Group("/v1")
 

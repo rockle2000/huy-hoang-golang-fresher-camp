@@ -2,6 +2,9 @@ package usermodel
 
 import (
 	"errors"
+	validation "github.com/go-ozzo/ozzo-validation"
+	"github.com/go-ozzo/ozzo-validation/is"
+	"regexp"
 	"test/common"
 	"test/component/tokenprovider"
 )
@@ -59,6 +62,19 @@ func (u *UserCreate) Mask(isAdmin bool) {
 	u.GenUID(common.DBTypeUser)
 }
 
+func (u UserCreate) Validate() error {
+	return validation.ValidateStruct(&u,
+		// Email cannot be empty, and must be a valid email
+		validation.Field(&u.Email, validation.Required, is.Email),
+		// LastName cannot be empty, and contain only letter
+		validation.Field(&u.LastName, validation.Required, is.UTFLetter),
+		// FirstName cannot be empty, and contain only letter
+		validation.Field(&u.FirstName, validation.Required, is.UTFLetter),
+		// Phone cannot be empty, and must be a valid phone number
+		validation.Field(&u.Phone, validation.Required, validation.Match(regexp.MustCompile("^(([+]?\\d{2})|\\d?)[\\s-]?[0-9]{2}[\\s-]?[0-9]{3}[\\s-]?[0-9]{4}$"))),
+	)
+}
+
 type UserLogin struct {
 	Email    string `json:"email" form:"email" gorm:"column:email;"`
 	Password string `json:"password" form:"password" gorm:"column:password"`
@@ -84,7 +100,7 @@ var (
 	ErrUserNameOrPasswordInvalid = common.NewCustomError(
 		errors.New("invalid username or password"),
 		"invalid username or password",
-		"ErrUserNameOrPassworrInvalid",
+		"ErrUserNameOrPasswordInvalid",
 	)
 
 	ErrEmailExisted = common.NewCustomError(
